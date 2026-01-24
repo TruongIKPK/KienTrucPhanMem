@@ -42,7 +42,7 @@ async function connectWithRetry() {
           console.log("Process success");
           channel.ack(msg);
         } catch (err) {
-          console.log("Send to DLQ");
+          console.log("Send to DLQ", msg);
           channel.nack(msg, false, false);
         }
       },
