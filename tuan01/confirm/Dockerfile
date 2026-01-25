@@ -6,8 +6,6 @@ COPY package.json .
 
 RUN npm install
 
-COPY producer.js .
+COPY confirmservice.js .
 
-EXPOSE 3000
-
-CMD ["npm", "start"]
+CMD ["node", "confirmservice.js"]

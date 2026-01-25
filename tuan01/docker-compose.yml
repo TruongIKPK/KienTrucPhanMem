@@ -1,0 +1,65 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4.2.2-management-alpine
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+ 
+  order:
+    build: ./order
+    container_name: order
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./order:/app
+      - /app/node_modules
+    develop:
+      watch:
+        - action: sync
+          path: ./order
+          target: /app
+          ignore:
+            - node_modules/
+    command: npm run dev
+    depends_on:
+      - rabbitmq
+
+  payment:
+    build: ./payment
+    container_name: payment
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./payment:/app
+      - /app/node_modules
+    develop:
+      watch:
+        - action: sync
+          path: ./payment
+          target: /app
+          ignore:
+            - node_modules/
+    command: npm run dev
+    depends_on:
+      - rabbitmq
+
+  confirm:
+    build: ./confirm
+    container_name: confirm
+    volumes:
+      - ./confirm:/app
+      - /app/node_modules
+    develop:
+      watch:
+        - action: sync
+          path: ./confirm
+          target: /app
+          ignore:
+            - node_modules/
+    command: npm run dev
+    depends_on:
+      - rabbitmq

@@ -6,6 +6,8 @@ app.use(express.json());
 
 const RABBITMQ_URL = "amqp://user:password@rabbitmq:5672";
 const QUEUE_ORDER = "order_queue";
+
+const QUEUE_PAYMENT = "payment_queue";
 const DEAD_LETTER_QUEUE = "order_queue.dlq";
 
 let channel;
@@ -15,13 +17,14 @@ async function connectRabbitMQ() {
     try {
       const conn = await amqp.connect(RABBITMQ_URL);
       channel = await conn.createChannel();
-      await channel.assertQueue(QUEUE_ORDER, {
+      await channel.assertQueue(QUEUE_PAYMENT, {
         durable: true,
-        deadLetterExchange: "",      // Default Exchange
+        deadLetterExchange: "",
         deadLetterRoutingKey: DEAD_LETTER_QUEUE,
       });
 
-      console.log("Producer connected to RabbitMQ");
+      console.log("Payment Service đã được kế nối tới RabbitMQ");
+
       break;
     } catch {
       console.log("Waiting for RabbitMQ...");
@@ -49,16 +52,29 @@ async function connectWithRetry() {
         if (!msg) return;
 
         const body = msg.content.toString();
-        console.log("Đã nhận được thông báo từ Service ORDER:", body);
-
         try {
           const data = JSON.parse(body);
-
+          
           if (!data.orderId) {
             throw new Error("Missing orderId");
           }
+
+          console.log("Đã nhận được thông báo từ Service Order:", data.orderId);
+
+          console.log(`Đang xử lý thanh toán cho đơn hàng: ${data.orderId}`);
+
           await new Promise(resolve => setTimeout(resolve, 3000));
+
+          const paymentId = `pay_${Math.floor(Math.random() * 1000)}`;
+
+          console.log(`Thanh toán thành công cho đơn hàng: ${data.orderId}`);
+
           channel.ack(msg);
+
+          channel.sendToQueue(QUEUE_PAYMENT, Buffer.from(JSON.stringify({ orderId: data.orderId, paymentId: paymentId, status: "paided" })), { persistent: true });
+
+          console.log(`Đã gửi xác nhận cho đơn hàng: ${data.orderId} với paymentId: ${paymentId}`);
+
         } catch (err) {
           console.log("Send to DLQ", msg);
           channel.nack(msg, false, false);
@@ -77,5 +93,5 @@ connectWithRetry();
 connectRabbitMQ();
 
 app.listen(3001, () => {
-  console.log("Producer API listening on port 3000");
+  console.log("Payment Service API listening on port 3001");
 });

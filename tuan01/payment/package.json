@@ -1,10 +1,10 @@
 {
-  "name": "producer",
+  "name": "paymentservice",
   "version": "1.0.0",
-  "main": "producer_dlq.js",
+  "main": "paymentservice.js",
   "scripts": {
-    "start": "node producer_dlq.js",
-    "dev": "node --watch --watch-path=. producer_dlq.js"
+    "start": "node paymentservice.js",
+    "dev": "node --watch --watch-path=. paymentservice.js"
   },
   "dependencies": {
     "amqplib": "^0.10.9",

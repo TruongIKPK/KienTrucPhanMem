@@ -5,60 +5,62 @@ const app = express();
 app.use(express.json());
 
 const RABBITMQ_URL = "amqp://user:password@rabbitmq:5672";
-const QUEUE = "order_queue";
+const QUEUE_PAYMENT = "payment_queue";
 const DEAD_LETTER_QUEUE = "order_queue.dlq";
 
 let channel;
 
-async function connectRabbitMQ() {
-  while (true) {
-    try {
-      const conn = await amqp.connect(RABBITMQ_URL);
-      channel = await conn.createChannel();
-      await channel.assertQueue(QUEUE, {
-        durable: true,
-        deadLetterExchange: "",      // Default Exchange
-        deadLetterRoutingKey: DEAD_LETTER_QUEUE,
-      });
+async function connectWithRetry() {
+  try {
+    console.log("Consumer connecting...");
+    const conn = await amqp.connect(RABBITMQ_URL);
+    channel = await conn.createChannel();
 
-      console.log("Producer connected to RabbitMQ");
-      break;
-    } catch {
-      console.log("Waiting for RabbitMQ...");
-      await new Promise((r) => setTimeout(r, 3000));
-    }
+    await channel.assertQueue(DEAD_LETTER_QUEUE, { durable: true });
+
+    await channel.assertQueue(QUEUE_PAYMENT, {
+      durable: true,
+      deadLetterExchange: "",
+      deadLetterRoutingKey: DEAD_LETTER_QUEUE,
+    });
+    
+    channel.consume(
+      QUEUE_PAYMENT,
+      async (msg) => {
+        if (!msg) return;
+
+        const body = msg.content.toString();
+
+        try {
+          const data = JSON.parse(body);
+
+          console.log(``);
+          
+          if (!data.orderId || !data.paymentId) {
+            throw new Error("Missing orderId or paymentId");
+          }
+
+          console.log(`Đã nhận được thông báo từ Service Payment: ${data.orderId} với mã thanh toán: ${data.paymentId}`);
+
+          await new Promise(resolve => setTimeout(resolve, 3000));
+
+          channel.ack(msg);
+
+          console.log("Đã gửi thông báo đến email của các khách hàng:", data.orderId, " với mã thanh toán:", data.paymentId);
+
+        
+        } catch (err) {
+          console.log("Send to DLQ", msg);
+          channel.nack(msg, false, false);
+        }
+      },
+      { noAck: false }
+    );
+
+  } catch (err) {
+    console.log("Consumer failed, retry in 3s...");
+    setTimeout(connectWithRetry, 3000);
   }
 }
 
-app.post("/send", async (req, res) => {
-  const { message, orderId } = req.body;
-
-  if (!message) {
-    return res.status(400).json({ error: "message or orderId is required" });
-  }
-
-  const data = {
-    message: message,
-    orderId: orderId,
-    timestamp: new Date()
-  };
-
-  channel.sendToQueue(
-      QUEUE,
-      Buffer.from(JSON.stringify(data)),
-      {
-        persistent: true // Message không bị mất khi RabbitMQ restart
-      }
-  );
-
-  console.log("Sent:", data);
-
-  res.json({status: "sent", dataSent: data});
-
-});
-
-connectRabbitMQ();
-
-app.listen(3000, () => {
-  console.log("Producer API listening on port 3000");
-});
+connectWithRetry();

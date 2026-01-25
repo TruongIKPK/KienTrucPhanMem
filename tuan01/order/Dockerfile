@@ -6,7 +6,7 @@ COPY package.json .
 
 RUN npm install
 
-COPY producer.js .
+COPY orderservice.js .
 
 EXPOSE 3000
 

@@ -6,8 +6,8 @@ COPY package.json .
 
 RUN npm install
 
-COPY producer.js .
+COPY paymentservice.js .
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["npm", "start"]
