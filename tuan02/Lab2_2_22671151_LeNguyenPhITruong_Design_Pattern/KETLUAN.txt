@@ -1,0 +1,18 @@
+Đối với nghiệp vụ tính thuế phức tạp trong thương mại điện tử,
+kiến trúc này giúp đảm bảo tính toàn vẹn dữ liệu tài chính:
+
++   Bảo mật và khóa cấu hình (State): State Pattern đóng vai trò như
+một "người gác cổng", chỉ cho phép cấu hình và thay đổi các loại
+thuế khi sản phẩm đang ở dạng Nháp (Draft). Khi đã mở bán (Active),
+mọi nỗ lực thay đổi biểu thuế đều bị chặn lại, đảm bảo giá cả không
+bị thao túng sai lệch trong quá trình khách hàng đang mua.
+
++   Định hình chính sách cơ sở (Strategy): Phân tách rõ ràng mặt hàng
+chịu thuế tiêu chuẩn và mặt hàng được miễn trừ (Tax-Free), làm
+nền tảng tính toán vững chắc.
+
++   Giải quyết bài toán tổ hợp thuế (Decorator): Việc một sản phẩm chịu
+cả thuế VAT, thuế tiêu thụ và thuế xa xỉ được giải quyết triệt để.
+Thay vì tạo ra hàng tá lớp lồng ghép kế thừa phức tạp, Decorator cho
+phép "cộng dồn" liên tiếp các loại thuế này lên giá gốc một cách linh
+hoạt, tuân thủ tuyệt đối nguyên lý Open/Closed (OCP).

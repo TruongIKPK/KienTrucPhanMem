@@ -1,0 +1,19 @@
+Hệ thống Quản lý Đơn hàng
+Trong bài toán quản lý đơn hàng, sự kết hợp của 3 Design Pattern
+mang lại một luồng xử lý logistics chặt chẽ và dễ mở rộng:
+
++   Bảo vệ tính đúng đắn của quy trình (State): Việc chuyển đổi
+trạng thái (Mới tạo -> Đang xử lý -> Đã giao / Hủy) được quản
+lý nghiêm ngặt. Hệ thống tự động ngăn chặn các thao tác phi
+logic, chẳng hạn như cố gắng hủy một đơn hàng đã được giao thành
+công, giúp loại bỏ hoàn toàn các khối if-else kiểm tra rủi ro.
+
++   Linh hoạt trong phương thức vận chuyển (Strategy): Hệ thống
+có thể dễ dàng bổ sung các hình thức giao hàng mới (như
+giao hỏa tốc, giao tiêu chuẩn) mà lớp Order cốt lõi không
+cần phải biết về thuật toán chi tiết bên trong.
+
++   Mở rộng tiện ích đóng gói động (Decorator): Các dịch vụ đi kèm
+như bọc quà hay dán nhãn dễ vỡ có thể được "khoác" lên phương
+thức vận chuyển một cách tùy ý vào lúc chạy (runtime) mà không
+làm phình to số lượng lớp (ngăn chặn Class Explosion).

@@ -1,0 +1,18 @@
+Hệ thống thanh toán là nơi nhạy cảm nhất, và các Design Pattern
+đã tạo ra một lớp bảo vệ đa tầng hoàn hảo:
+
++   Ngăn ngừa lỗi trừ tiền kép (State): Vòng đời giao dịch
+(Chờ xử lý -> Đang xử lý -> Hoàn tất/Thất bại) được kiểm soát gắt gao.
+Nhờ State Pattern, nếu người dùng bấm nút thanh toán hai lần do mạng lag,
+giao dịch đang ở trạng thái "Processing" hoặc "Completed" sẽ từ chối thực
+thi lại, đảm bảo tính lũy đẳng (Idempotency) và an toàn tài chính.
+
++   Tích hợp đa cổng thanh toán (Strategy): Logic gọi API của PayPal, VNPay
+hay Thẻ tín dụng được cô lập vào từng lớp riêng biệt. Lớp PaymentTransaction
+chỉ cần ra lệnh executePayment() mà không cần quan tâm cơ chế kết nối mạng của
+từng bên thứ ba.
+
++   Xử lý chuỗi chi phí & khuyến mãi (Decorator): Các nghiệp vụ làm thay đổi tổng
+tiền như cộng thêm phí giao dịch (Processing Fee) hay trừ đi mã giảm giá (Discount)
+được bọc tuần tự thành từng lớp trước khi đẩy sang Strategy để trừ tiền, giúp luồng
+tính toán minh bạch và dễ dàng thêm bớt các chương trình khuyến mãi theo mùa.
