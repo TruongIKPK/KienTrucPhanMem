@@ -1,0 +1,164 @@
+:root {
+  --ink: #1a1f2e;
+  --muted: #4a5770;
+  --surface: #ffffffcc;
+  --primary: #0f4c81;
+  --accent: #d36842;
+  --line: #d7e0ec;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 32px;
+  color: var(--ink);
+  font: 16px "Trebuchet MS", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 15% 20%, #fff4d6 0%, transparent 40%),
+    radial-gradient(circle at 85% 10%, #e1efff 0%, transparent 35%),
+    linear-gradient(120deg, #f8fbff 0%, #fffdf7 100%);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.hero {
+  max-width: 1000px;
+  margin: 0 auto 20px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  backdrop-filter: blur(2px);
+}
+
+.badge {
+  display: inline-block;
+  margin: 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  background: #eaf2ff;
+  color: var(--primary);
+}
+
+h1 {
+  margin: 10px 0;
+  font-size: clamp(30px, 5vw, 52px);
+  line-height: 1.05;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--muted);
+  max-width: 760px;
+}
+
+.module-grid {
+  max-width: 1000px;
+  margin: 0 auto 20px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.module-card {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 5px 22px rgba(20, 45, 82, 0.07);
+}
+
+.module-card h2 {
+  margin: 0 0 2px;
+}
+
+.module-card .icon {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.module-card p {
+  margin: 6px 0;
+}
+
+.module-card ul {
+  margin: 8px 0 0 18px;
+  padding: 0;
+}
+
+.panel {
+  max-width: 1000px;
+  margin: 0 auto 20px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.panel h2 {
+  margin-top: 0;
+}
+
+.mermaid {
+  margin: 12px 0 20px;
+  padding: 12px;
+  border: 1px dashed #bcc8d8;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.output-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.output {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.output h3 {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 15px;
+  color: #fff;
+  background: var(--primary);
+}
+
+pre {
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #f7f9fc;
+  font: 13px Consolas, "Courier New", monospace;
+}
+
+@media (max-width: 900px) {
+  body {
+    padding: 16px;
+  }
+
+  .module-grid,
+  .output-grid {
+    grid-template-columns: 1fr;
+  }
+}
