@@ -1,0 +1,29 @@
+<%- include('partials/frame-top') %>
+  <div class="card">
+    <h1>Borrow</h1>
+    <form method="post" action="/borrow">
+      <label>Your name
+        <input name="userName" placeholder="Reader" />
+      </label>
+      <label>Book
+        <select name="bookId">
+          <% books.forEach(b => { %>
+            <option value="<%= b.id %>">#<%= b.id %> <%= b.title %> (<%= b.format %>)</option>
+          <% }) %>
+        </select>
+      </label>
+      <label><input type="checkbox" name="extend" /> Extend 7 days</label>
+      <label><input type="checkbox" name="specialEdition" /> Request special edition</label>
+      <button type="submit">Borrow</button>
+    </form>
+    <% if (message) { %>
+      <p class="message"><%= message %></p>
+    <% } %>
+    <% if (detail) { %>
+      <p class="muted">Due days: <%= detail.dueDays %></p>
+      <% if (detail.tags && detail.tags.length) { %>
+        <p class="muted">Tags: <%= detail.tags.join(', ') %></p>
+      <% } %>
+    <% } %>
+  </div>
+<%- include('partials/frame-bottom') %>

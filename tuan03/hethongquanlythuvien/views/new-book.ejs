@@ -1,0 +1,24 @@
+<%- include('partials/frame-top') %>
+  <div class="card">
+    <h1>Add Book</h1>
+    <form method="post" action="/books">
+      <label>Title
+        <input name="title" required />
+      </label>
+      <label>Author
+        <input name="author" required />
+      </label>
+      <label>Genre
+        <input name="genre" required />
+      </label>
+      <label>Type
+        <select name="type">
+          <option value="paper">Paper</option>
+          <option value="ebook">E-Book</option>
+          <option value="audio">Audio Book</option>
+        </select>
+      </label>
+      <button type="submit">Save</button>
+    </form>
+  </div>
+<%- include('partials/frame-bottom') %>

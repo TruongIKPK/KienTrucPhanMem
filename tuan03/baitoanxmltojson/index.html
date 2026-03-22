@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>XML ⇄ JSON Adapter Demo</title>
+	<style>
+		:root {
+			--bg: #1b1b1b;
+			--accent: #ff0505;
+			--label: #c1bb94;
+			--text: #e7e7e7;
+		}
+
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			min-height: 100vh;
+			background: var(--bg);
+			color: var(--text);
+			font-family: "Segoe UI", Arial, sans-serif;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 32px;
+		}
+
+		.canvas {
+			width: 100%;
+			max-width: 1100px;
+			display: grid;
+			grid-template-columns: 1fr 120px 1fr;
+			gap: 20px;
+			align-items: start;
+		}
+
+		.panel {
+			position: relative;
+			border: 3px solid var(--accent);
+			border-radius: 6px;
+			padding: 16px 12px 12px;
+			min-height: 380px;
+			background: rgba(255, 255, 255, 0.01);
+		}
+
+		.label {
+			position: absolute;
+			top: -18px;
+			left: 10px;
+			background: var(--label);
+			color: var(--accent);
+			font-weight: 600;
+			padding: 4px 10px;
+			border-radius: 2px;
+			letter-spacing: 0.5px;
+			font-size: 20px;
+		}
+
+		textarea {
+			width: 100%;
+			height: 100%;
+			min-height: 330px;
+			background: transparent;
+			color: var(--text);
+			border: none;
+			outline: none;
+			resize: vertical;
+			font-size: 15px;
+			line-height: 1.4;
+			font-family: "Cascadia Code", "Fira Code", monospace;
+		}
+
+		.controls {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 10px;
+			margin-top: 30px;
+		}
+
+		button {
+			width: 120px;
+			padding: 10px 0;
+			background: var(--label);
+			color: var(--accent);
+			border: 2px solid var(--accent);
+			border-radius: 2px;
+			font-size: 18px;
+			font-weight: 700;
+			cursor: pointer;
+			transition: transform 0.1s ease, box-shadow 0.1s ease;
+		}
+
+		button:hover {
+			transform: translateY(-1px);
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+		}
+
+		.status {
+			margin-top: 12px;
+			text-align: center;
+			color: #7bd4ff;
+			min-height: 20px;
+			font-size: 14px;
+		}
+	</style>
+</head>
+<body>
+	<div class="canvas">
+		<div class="panel">
+			<div class="label">XML</div>
+			<textarea id="xmlInput"></textarea>
+		</div>
+
+		<div class="controls">
+			<button id="xmlToJson">&lt;-</button>
+			<button id="jsonToXml">-&gt;</button>
+			<div class="status" id="status"></div>
+		</div>
+
+		<div class="panel">
+			<div class="label">JSON</div>
+			<textarea id="jsonInput"></textarea>
+		</div>
+	</div>
+
+	<script>
+		// Simple XML service for the browser
+		class XMLService {
+			constructor(initialXml = "<root><name>Demo</name><age>30</age></root>") {
+				this.xml = initialXml;
+			}
+			getData() {
+				return this.xml;
+			}
+			sendData(xml) {
+				this.xml = xml;
+				// In browser, just keep a copy; could also log.
+			}
+		}
+
+		// Adapter: flat XML <> JSON (demo scope)
+		class XMLtoJSONAdapter {
+			constructor(xmlService, rootTag = "root") {
+				this.xmlService = xmlService;
+				this.rootTag = rootTag;
+			}
+
+			parseXml(xml) {
+				const rootMatch = xml.match(/<([^!?\s>]+)[^>]*>([\s\S]*)<\/\1>/);
+				const body = rootMatch ? rootMatch[2] : xml;
+				const result = {};
+				const tagRegex = /<([A-Za-z0-9_:-]+)>([^<>]*)<\/\1>/g;
+				let match;
+				while ((match = tagRegex.exec(body)) !== null) {
+					const [, tag, value] = match;
+					const num = Number(value);
+					result[tag] = Number.isNaN(num) ? value : num;
+				}
+				return result;
+			}
+
+			buildXml(json) {
+				const entries = Object.entries(json)
+					.map(([key, value]) => `  <${key}>${value}</${key}>`)
+					.join("\n");
+				return `<${this.rootTag}>\n${entries}\n</${this.rootTag}>`;
+			}
+
+			getData() {
+				const xml = this.xmlService.getData();
+				return this.parseXml(xml);
+			}
+
+			sendData(json) {
+				const xml = this.buildXml(json);
+				this.xmlService.sendData(xml);
+				return xml;
+			}
+		}
+
+		// Wire up UI
+		const xmlArea = document.getElementById("xmlInput");
+		const jsonArea = document.getElementById("jsonInput");
+		const statusEl = document.getElementById("status");
+		const xmlToJsonBtn = document.getElementById("xmlToJson");
+		const jsonToXmlBtn = document.getElementById("jsonToXml");
+
+		const service = new XMLService();
+		const adapter = new XMLtoJSONAdapter(service, "root");
+
+		// Prefill
+		xmlArea.value = service.getData();
+		jsonArea.value = JSON.stringify(adapter.getData(), null, 2);
+
+		const setStatus = msg => {
+			statusEl.textContent = msg;
+			if (msg) {
+				setTimeout(() => (statusEl.textContent = ""), 2000);
+			}
+		};
+
+		xmlToJsonBtn.addEventListener("click", () => {
+			try {
+				service.sendData(xmlArea.value);
+				const json = adapter.getData();
+				jsonArea.value = JSON.stringify(json, null, 2);
+				setStatus("Converted XML → JSON");
+			} catch (err) {
+				setStatus("Lỗi chuyển đổi XML → JSON");
+				console.error(err);
+			}
+		});
+
+		jsonToXmlBtn.addEventListener("click", () => {
+			try {
+				const json = JSON.parse(jsonArea.value || "{}");
+				const xml = adapter.sendData(json);
+				xmlArea.value = xml;
+				setStatus("Converted JSON → XML");
+			} catch (err) {
+				setStatus("Lỗi chuyển đổi JSON → XML");
+				console.error(err);
+			}
+		});
+	</script>
+</body>
+</html>

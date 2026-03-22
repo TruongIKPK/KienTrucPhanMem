@@ -1,0 +1,12 @@
+{
+  "name": "baitoanuicomponents",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

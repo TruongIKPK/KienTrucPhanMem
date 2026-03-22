@@ -1,0 +1,33 @@
+<%- include('partials/frame-top') %>
+  <div class="card">
+    <h1>Search</h1>
+    <form method="get" action="/search">
+      <label>Keyword
+        <input name="term" value="<%= term %>" />
+      </label>
+      <label>Strategy
+        <select name="strategy">
+          <option value="title" <%= strategyKey === "title" ? "selected" : "" %>>By Title</option>
+          <option value="author" <%= strategyKey === "author" ? "selected" : "" %>>By Author</option>
+          <option value="genre" <%= strategyKey === "genre" ? "selected" : "" %>>By Genre</option>
+        </select>
+      </label>
+      <button type="submit">Search</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Results</h2>
+    <% if (!term) { %>
+      <p class="muted">Enter a keyword to search.</p>
+    <% } else if (results.length === 0) { %>
+      <p>No matches.</p>
+    <% } else { %>
+      <ul>
+        <% results.forEach(b => { %>
+          <li><strong><%= b.title %></strong> by <%= b.author %> (<%= b.genre %>) <span class="badge"><%= b.format %></span></li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </div>
+<%- include('partials/frame-bottom') %>

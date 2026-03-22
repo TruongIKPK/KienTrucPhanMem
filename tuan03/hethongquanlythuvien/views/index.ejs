@@ -1,0 +1,25 @@
+<%- include('partials/frame-top') %>
+  <div class="card">
+    <h1>Library Management</h1>
+    <p class="muted">Demo with Singleton, Factory Method, Strategy, Observer, Decorator.</p>
+    <p>
+      Quick actions:
+      <a href="/books/new">Add Book</a> ·
+      <a href="/search">Search</a> ·
+      <a href="/borrow">Borrow</a>
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Available Books</h2>
+    <% if (books.length === 0) { %>
+      <p>No books yet.</p>
+    <% } else { %>
+      <ul>
+        <% books.forEach(b => { %>
+          <li><strong><%= b.title %></strong> by <%= b.author %> (<%= b.genre %>) <span class="badge"><%= b.format %></span></li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </div>
+<%- include('partials/frame-bottom') %>

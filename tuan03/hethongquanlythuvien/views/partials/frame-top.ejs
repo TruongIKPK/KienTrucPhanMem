@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Library System</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #38bdf8;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: #1f2937;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    a { color: var(--accent); text-decoration: none; }
+    header {
+      background: #0b1220;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    nav a {
+      margin-right: 14px;
+      font-weight: 600;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    h1, h2, h3 { margin-top: 0; }
+    form label { display: block; margin-top: 10px; color: var(--muted); }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #0b1220;
+      color: var(--text);
+    }
+    button {
+      margin-top: 14px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #0b1220;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    ul { padding-left: 18px; }
+    .muted { color: var(--muted); }
+    .badge {
+      display: inline-block;
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 8px;
+      margin-left: 6px;
+      color: var(--accent);
+      font-size: 12px;
+    }
+    .message { margin-top: 10px; color: #34d399; }
+  </style>
+</head>
+<body>
+  <header>
+    <div><strong>Library</strong></div>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/books">Books</a>
+      <a href="/books/new">Add Book</a>
+      <a href="/search">Search</a>
+      <a href="/borrow">Borrow</a>
+    </nav>
+  </header>
+  <main class="wrap">

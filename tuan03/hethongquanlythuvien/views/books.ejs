@@ -1,0 +1,18 @@
+<%- include('partials/frame-top') %>
+  <div class="card">
+    <h1>Books</h1>
+    <p><a href="/books/new">Add a book</a></p>
+    <% if (books.length === 0) { %>
+      <p>No books.</p>
+    <% } else { %>
+      <ul>
+        <% books.forEach(b => { %>
+          <li>
+            <strong>#<%= b.id %> <%= b.title %></strong> by <%= b.author %> (<%= b.genre %>)
+            <span class="badge"><%= b.format %></span>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+  </div>
+<%- include('partials/frame-bottom') %>
