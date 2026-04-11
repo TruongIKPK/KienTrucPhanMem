@@ -1,0 +1,75 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis_limited
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'           
+          memory: 512M         
+        reservations:
+          cpus: '0.25'        
+          memory: 256M         
+    networks:
+      - app-network
+
+  # Redis Commander for monitoring resource usage
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis_commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - app-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
+  # Optional: Stress testing tool to demonstrate resource limits
+  stress-test:
+    image: redis:7-alpine
+    container_name: redis_stress_test
+    command: |
+      sh -c "
+      echo 'Connecting to Redis...'
+      redis-cli -h redis ping
+      echo 'Starting stress test (SET operations)...'
+      redis-cli -h redis --benchmark -t set -n 100000 -q
+      echo 'Stress test completed'
+      "
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+volumes:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge

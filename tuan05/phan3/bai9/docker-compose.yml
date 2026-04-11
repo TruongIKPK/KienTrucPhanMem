@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:10.6-alpine
+    container_name: nextcloud_db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword123
+      MYSQL_DATABASE: nextcloud_db
+      MYSQL_USER: nextcloud_user
+      MYSQL_PASSWORD: nextcloud_password123
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - nextcloud_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+
+  redis:
+    image: redis:7-alpine
+    container_name: nextcloud_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - nextcloud_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nextcloud:
+    image: nextcloud:latest
+    container_name: nextcloud_app
+    ports:
+      - "80:80"
+    environment:
+      MYSQL_HOST: mariadb
+      MYSQL_DATABASE: nextcloud_db
+      MYSQL_USER: nextcloud_user
+      MYSQL_PASSWORD: nextcloud_password123
+      NEXTCLOUD_ADMIN_USER: admin
+      NEXTCLOUD_ADMIN_PASSWORD: admin123456
+      NEXTCLOUD_TRUSTED_DOMAINS: "localhost 127.0.0.1"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - nextcloud_data:/var/www/html
+      - nextcloud_config:/var/www/html/config
+    networks:
+      - nextcloud_network
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+networks:
+  nextcloud_network:
+    driver: bridge
+
+volumes:
+  mariadb_data:
+  redis_data:
+  nextcloud_data:
+  nextcloud_config:

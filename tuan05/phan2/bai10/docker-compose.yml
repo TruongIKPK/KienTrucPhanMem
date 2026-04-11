@@ -1,0 +1,50 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_persistent
+    environment:
+      MYSQL_DATABASE: persistent_db
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: app_password
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      # Named volume for data persistence
+      - mysql_data:/var/lib/mysql
+      # Bind mount for initialization scripts (optional)
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: MySQL client example to demonstrate volume persistence
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: mysql_manager
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: appuser
+      PMA_PASSWORD: app_password
+    ports:
+      - "8081:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  # Named volume for MySQL data persistence
+  mysql_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

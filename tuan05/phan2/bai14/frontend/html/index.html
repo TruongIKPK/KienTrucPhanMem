@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Container Network Communication</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        .network-info {
+            background: #f0f0f0;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+
+        .network-info p {
+            color: #555;
+            margin: 8px 0;
+            font-size: 0.9rem;
+        }
+
+        .network-info strong {
+            color: #333;
+        }
+
+        .api-section {
+            margin-bottom: 30px;
+        }
+
+        .api-section h2 {
+            color: #667eea;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .api-section h2::before {
+            content: "▶";
+            margin-right: 10px;
+            font-size: 0.8rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            background: #667eea;
+            color: white;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .response-box {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #333;
+        }
+
+        .response-box.success {
+            border-color: #4caf50;
+            background: #f1f8f4;
+        }
+
+        .response-box.error {
+            border-color: #f44336;
+            background: #fdf1f1;
+            color: #d32f2f;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .divider {
+            height: 1px;
+            background: #eee;
+            margin: 25px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐳 Container Network Test</h1>
+        <p class="subtitle">Testing communication between Frontend and Backend services</p>
+
+        <div class="network-info">
+            <p><strong>Frontend Container:</strong> frontend_service (Nginx)</p>
+            <p><strong>Backend Container:</strong> backend_service (Node.js)</p>
+            <p><strong>Network:</strong> private-network (Bridge)</p>
+            <p><strong>Communication:</strong> frontend → backend:3000</p>
+        </div>
+
+        <div class="api-section">
+            <h2>Backend Status</h2>
+            <button onclick="checkHealth()">Check Backend Health</button>
+            <div id="healthResponse" class="response-box" style="display:none;"></div>
+            <div id="healthStatus" class="status disconnected" style="display:none;">Checking...</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="api-section">
+            <h2>API Requests</h2>
+            <div class="button-group">
+                <button onclick="getRoot()">GET /</button>
+                <button onclick="getData()">GET /api/data</button>
+                <button onclick="getInfo()">GET /api/info</button>
+            </div>
+            <div id="apiResponse" class="response-box" style="display:none;"></div>
+        </div>
+
+        <div class="loading" id="loading">⏳ Loading...</div>
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api';
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
+        }
+
+        async function makeRequest(endpoint) {
+            showLoading(true);
+            try {
+                const response = await fetch(endpoint);
+                const data = await response.json();
+                return { success: true, data, status: response.status };
+            } catch (error) {
+                return { success: false, error: error.message, status: 0 };
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function checkHealth() {
+            const result = await makeRequest('/health');
+            const statusEl = document.getElementById('healthStatus');
+            
+            if (result.success && result.status === 200) {
+                statusEl.className = 'status connected';
+                statusEl.textContent = '✓ Backend is connected and healthy';
+                statusEl.style.display = 'block';
+            } else {
+                statusEl.className = 'status disconnected';
+                statusEl.textContent = '✗ Backend is not responding';
+                statusEl.style.display = 'block';
+            }
+        }
+
+        async function getRoot() {
+            const result = await makeRequest(API_BASE_URL.replace('/api', ''));
+            displayResponse(result);
+        }
+
+        async function getData() {
+            const result = await makeRequest(`${API_BASE_URL}/data`);
+            displayResponse(result);
+        }
+
+        async function getInfo() {
+            const result = await makeRequest(`${API_BASE_URL}/info`);
+            displayResponse(result);
+        }
+
+        function displayResponse(result) {
+            const responseEl = document.getElementById('apiResponse');
+            responseEl.style.display = 'block';
+            
+            if (result.success) {
+                responseEl.className = 'response-box success';
+                responseEl.textContent = JSON.stringify(result.data, null, 2);
+            } else {
+                responseEl.className = 'response-box error';
+                responseEl.textContent = `Error: ${result.error}`;
+            }
+        }
+
+        // Check health on page load
+        window.addEventListener('load', checkHealth);
+    </script>
+</body>
+</html>

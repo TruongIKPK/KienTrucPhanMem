@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: django_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - django_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  django:
+    build: .
+    container_name: django_app
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    environment:
+      DEBUG: "True"
+      SECRET_KEY: "django-insecure-test-key-change-in-production"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    volumes:
+      - ./django_app:/app
+    networks:
+      - django_network
+    depends_on:
+      redis:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+  celery_worker:
+    build: .
+    container_name: celery_worker
+    command: celery -A django_project worker -l info
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: "django-insecure-test-key-change-in-production"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    volumes:
+      - ./django_app:/app
+    networks:
+      - django_network
+    depends_on:
+      - redis
+      - django
+
+  celery_beat:
+    build: .
+    container_name: celery_beat
+    command: celery -A django_project beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: "django-insecure-test-key-change-in-production"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+    volumes:
+      - ./django_app:/app
+    networks:
+      - django_network
+    depends_on:
+      - redis
+      - django
+
+networks:
+  django_network:
+    driver: bridge
+
+volumes:
+  redis_data:

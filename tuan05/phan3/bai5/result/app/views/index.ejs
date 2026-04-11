@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Voting Results</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        h1 { color: #333; text-align: center; margin-bottom: 30px; }
+        .results { display: flex; flex-direction: column; gap: 20px; }
+        .result-item { display: flex; align-items: center; padding: 15px; background: #f5f5f5; border-radius: 5px; }
+        .option { flex: 0 0 100px; font-weight: bold; color: #667eea; }
+        .bar-container { flex: 1; margin: 0 20px; background: #e0e0e0; height: 30px; border-radius: 5px; overflow: hidden; }
+        .bar { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.3s; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; color: white; font-weight: bold; }
+        .count { flex: 0 0 50px; text-align: right; font-weight: bold; }
+        .total { text-align: center; margin-top: 30px; padding: 15px; background: #f0f0f0; border-radius: 5px; }
+        .refresh-hint { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+    </style>
+    <script>
+        function updateResults() {
+            fetch('/api/results')
+                .then(r => r.json())
+                .then(data => {
+                    const total = data.totalVotes;
+                    const resultsDiv = document.getElementById('results');
+                    
+                    let html = '';
+                    data.votes.forEach(vote => {
+                        const percentage = total > 0 ? (vote.count / total * 100) : 0;
+                        html += `
+                            <div class="result-item">
+                                <div class="option">${vote.option}</div>
+                                <div class="bar-container">
+                                    <div class="bar" style="width: ${percentage}%">${vote.count}</div>
+                                </div>
+                                <div class="count">${vote.count}</div>
+                            </div>
+                        `;
+                    });
+                    resultsDiv.innerHTML = html;
+                    document.getElementById('total').textContent = `Total Votes: ${total}`;
+                });
+        }
+        
+        setInterval(updateResults, 2000);
+        updateResults();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Voting Results</h1>
+        <div class="results" id="results"></div>
+        <div class="total" id="total">Total Votes: 0</div>
+        <div class="refresh-hint">Updates every 2 seconds</div>
+    </div>
+</body>
+</html>

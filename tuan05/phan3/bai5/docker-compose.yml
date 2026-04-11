@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # Redis - temporary vote storage
+  redis:
+    image: redis:alpine
+    container_name: voting_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - voting_network
+    volumes:
+      - redis_data:/data
+
+  # PostgreSQL - vote results database
+  postgres:
+    image: postgres:13-alpine
+    container_name: voting_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: voting_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    networks:
+      - voting_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Vote Frontend - Python Flask app
+  vote:
+    build: ./vote
+    container_name: voting_frontend
+    ports:
+      - "5000:80"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - ./vote/app:/app
+    networks:
+      - voting_network
+    depends_on:
+      - redis
+
+  # Result Backend - Node.js app
+  result:
+    build: ./result
+    container_name: voting_backend
+    ports:
+      - "5001:80"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: voting_db
+    volumes:
+      - ./result/app:/app
+    networks:
+      - voting_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Worker - Java service that processes votes
+  worker:
+    build: ./worker
+    container_name: voting_worker
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: voting_db
+    networks:
+      - voting_network
+    depends_on:
+      - redis
+      - postgres
+
+networks:
+  voting_network:
+    driver: bridge
+
+volumes:
+  redis_data:
+  postgres_data:

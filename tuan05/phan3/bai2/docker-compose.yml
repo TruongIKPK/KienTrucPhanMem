@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: nodejs_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - nodejs_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  nodejs_app:
+    build: .
+    container_name: nodejs_app
+    ports:
+      - "3000:3000"
+    environment:
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/nodeapp?authSource=admin
+      NODE_ENV: production
+    volumes:
+      - ./src:/app/src
+    networks:
+      - nodejs_network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+networks:
+  nodejs_network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
