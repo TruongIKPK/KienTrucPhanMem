@@ -1,0 +1,33 @@
+---
+description: Luôn áp dụng skill nhom-03 Food Ordering — context và quy trình từ thư mục ai-agent/
+alwaysApply: true
+---
+
+# nhom_03 — skill bắt buộc
+
+Dự án này là **Mini Food Ordering System** của **nhom_03**. Trước khi thiết kế hoặc sửa code, hãy **đọc và tuân theo** skill:
+
+- **`.cursor/skills/nhom-03-food-ordering/SKILL.md`** (skill `nhom-03-food-ordering`)
+
+Sau đó làm theo thứ tự trong skill: `ai-agent/core/system.prompt.md` → `ai-agent/context/` → `ai-agent/core/rules/` → persona / templates / workflows / commands / `ai-agent/memory/` tùy tác vụ.
+
+## Tech Stack
+
+- **Frontend**: ReactJS + Axios
+- **Backend**: Java 17+ / Spring Boot 3.x
+- **API Gateway**: Spring Cloud Gateway
+- **Database**: H2 In-Memory
+- **Communication**: REST API
+
+## Services
+
+| Service | Port |
+|---------|------|
+| Frontend | 3000 |
+| API Gateway | 8080 |
+| User Service | 8081 |
+| Food Service | 8082 |
+| Order Service | 8083 |
+| Payment Service | 8084 |
+
+Không bỏ qua các file context khi thay đổi API, DB, hoặc kiến trúc.

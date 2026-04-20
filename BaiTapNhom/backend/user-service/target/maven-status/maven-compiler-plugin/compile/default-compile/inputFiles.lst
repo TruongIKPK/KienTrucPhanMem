@@ -1,0 +1,13 @@
+D:\3_KTPM\KienTrucPhanMem\BaiTapNhom\backend\user-service\src\main\java\com\nhom03\userservice\config\CorsConfig.java
+D:\3_KTPM\KienTrucPhanMem\BaiTapNhom\backend\user-service\src\main\java\com\nhom03\userservice\repository\UserRepository.java
+D:\3_KTPM\KienTrucPhanMem\BaiTapNhom\backend\user-service\src\main\java\com\nhom03\userservice\exception\BadRequestException.java
+D:\3_KTPM\KienTrucPhanMem\BaiTapNhom\backend\user-service\src\main\java\com\nhom03\userservice\dto\LoginRequest.java
+D:\3_KTPM\KienTrucPhanMem\BaiTapNhom\backend\user-service\src\main\java\com\nhom03\userservice\model\Role.java
+D:\3_KTPM\KienTrucPhanMem\BaiTapNhom\backend\user-service\src\main\java\com\nhom03\userservice\dto\RegisterRequest.java
+D:\3_KTPM\KienTrucPhanMem\BaiTapNhom\backend\user-service\src\main\java\com\nhom03\userservice\model\User.java
+D:\3_KTPM\KienTrucPhanMem\BaiTapNhom\backend\user-service\src\main\java\com\nhom03\userservice\dto\UserResponse.java
+D:\3_KTPM\KienTrucPhanMem\BaiTapNhom\backend\user-service\src\main\java\com\nhom03\userservice\service\UserService.java
+D:\3_KTPM\KienTrucPhanMem\BaiTapNhom\backend\user-service\src\main\java\com\nhom03\userservice\exception\ResourceNotFoundException.java
+D:\3_KTPM\KienTrucPhanMem\BaiTapNhom\backend\user-service\src\main\java\com\nhom03\userservice\UserServiceApplication.java
+D:\3_KTPM\KienTrucPhanMem\BaiTapNhom\backend\user-service\src\main\java\com\nhom03\userservice\controller\UserController.java
+D:\3_KTPM\KienTrucPhanMem\BaiTapNhom\backend\user-service\src\main\java\com\nhom03\userservice\exception\GlobalExceptionHandler.java

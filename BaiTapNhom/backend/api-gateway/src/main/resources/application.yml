@@ -1,0 +1,77 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: user-service-register
+          uri: ${USER_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/users/register
+          filters:
+            - RewritePath=/api/users/register, /register
+        
+        - id: user-service-login
+          uri: ${USER_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/users/login
+          filters:
+            - RewritePath=/api/users/login, /login
+        
+        - id: user-service
+          uri: ${USER_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/users, /api/users/**
+          filters:
+            - RewritePath=/api/users(?<segment>/?.*), /users${segment}
+        
+        - id: food-service
+          uri: ${FOOD_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/foods, /api/foods/**
+          filters:
+            - RewritePath=/api/foods(?<segment>/?.*), /foods${segment}
+        
+        - id: order-service
+          uri: ${ORDER_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/orders, /api/orders/**
+          filters:
+            - RewritePath=/api/orders(?<segment>/?.*), /orders${segment}
+        
+        - id: payment-service
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/payments, /api/payments/**
+          filters:
+            - RewritePath=/api/payments(?<segment>/?.*), /payments${segment}
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "http://localhost:*"
+              - "http://127.0.0.1:*"
+              - "http://*.local:*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            exposedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.nhom03: DEBUG
