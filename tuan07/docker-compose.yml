@@ -1,0 +1,225 @@
+# Movie Ticket System — full stack on Docker
+#
+# Run:    docker compose up -d --build
+# Logs:   docker compose logs -f <service>
+# Stop:   docker compose down            (giữ data)
+# Reset:  docker compose down -v         (xoá volume Postgres + RabbitMQ)
+#
+# Port expose ra host (minimal):
+#   - 8080  : API Gateway (Spring Cloud Gateway)
+#   - 8085  : Frontend (Nginx serve static SPA)
+#   - 15672 : RabbitMQ Management UI (movieticket / movieticket)
+#
+# Các service Spring Boot khác (8081-8084, 8086) + Postgres (5432) + RabbitMQ AMQP (5672)
+# chỉ truy cập trong network `movieticket-net`.
+
+x-spring-healthcheck: &spring-healthcheck
+  interval: 15s
+  timeout: 5s
+  retries: 12
+  start_period: 90s
+
+services:
+  # ============================================================
+  # Infrastructure
+  # ============================================================
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: mt-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "15672:15672"   # Management UI only
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-movieticket}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-movieticket}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  postgres:
+    image: postgres:16
+    container_name: mt-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-movieticket}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-movieticket}
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-movieticket}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # ============================================================
+  # Spring Boot microservices
+  # ============================================================
+  user-service:
+    build:
+      context: ./user-service
+    container_name: mt-user-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME:-movieticket}
+      DB_PASSWORD: ${DB_PASSWORD:-movieticket}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-movieticket}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-movieticket}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-please-use-at-least-32-bytes-long-secret-key}
+      JWT_EXPIRES_IN_SECONDS: ${JWT_EXPIRES_IN_SECONDS:-3600}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      <<: *spring-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8081/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+
+  movie-service:
+    build:
+      context: ./movie-service
+    container_name: mt-movie-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME:-movieticket}
+      DB_PASSWORD: ${DB_PASSWORD:-movieticket}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-please-use-at-least-32-bytes-long-secret-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      <<: *spring-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8082/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+
+  booking-service:
+    build:
+      context: ./booking-service
+    container_name: mt-booking-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME:-movieticket}
+      DB_PASSWORD: ${DB_PASSWORD:-movieticket}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-movieticket}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-movieticket}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-please-use-at-least-32-bytes-long-secret-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      <<: *spring-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+
+  payment-service:
+    build:
+      context: ./payment-service
+    container_name: mt-payment-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME:-movieticket}
+      DB_PASSWORD: ${DB_PASSWORD:-movieticket}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-movieticket}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-movieticket}
+      PAYMENT_SUCCESS_RATE: ${PAYMENT_SUCCESS_RATE:-0.7}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      <<: *spring-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8084/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+
+  notification-service:
+    build:
+      context: ./notification-service
+    container_name: mt-notification-service
+    restart: unless-stopped
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME:-movieticket}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-movieticket}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      <<: *spring-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8086/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: mt-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      USER_SERVICE_URL: http://user-service:8081
+      MOVIE_SERVICE_URL: http://movie-service:8082
+      BOOKING_SERVICE_URL: http://booking-service:8083
+      PAYMENT_SERVICE_URL: http://payment-service:8084
+    depends_on:
+      user-service:
+        condition: service_healthy
+      movie-service:
+        condition: service_healthy
+      booking-service:
+        condition: service_healthy
+      payment-service:
+        condition: service_healthy
+    healthcheck:
+      <<: *spring-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+
+  # ============================================================
+  # Frontend (Nginx serving Vite static build + proxy /api)
+  # ============================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mt-frontend
+    restart: unless-stopped
+    ports:
+      - "8085:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/healthz | grep -q ok || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  rabbitmq_data:
+  postgres_data:
+
+networks:
+  default:
+    name: movieticket-net

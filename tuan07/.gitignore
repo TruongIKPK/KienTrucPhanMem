@@ -1,0 +1,38 @@
+# ============= Java / Maven =============
+target/
+*.class
+*.jar
+*.war
+*.log
+.mvn/wrapper/maven-wrapper.jar
+hs_err_pid*
+
+# ============= IDE =============
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+*.swp
+
+# ============= Node / Frontend =============
+node_modules/
+dist/
+build/
+.vite/
+*.local
+
+# ============= Env =============
+.env
+.env.local
+.env.*.local
+application-dev.yml
+application-local.yml
+
+# ============= OS =============
+.DS_Store
+Thumbs.db
+
+# ============= Docker =============
+*.pid

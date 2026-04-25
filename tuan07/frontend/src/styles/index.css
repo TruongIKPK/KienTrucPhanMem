@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    @apply h-full bg-canvas text-hazardWhite font-sans antialiased;
+  }
+
+  body {
+    background-color: #131313;
+  }
+
+  ::selection {
+    background-color: #3cffd0;
+    color: #131313;
+  }
+}
+
+@layer components {
+  .kicker {
+    @apply font-mono text-[12px] uppercase tracking-kicker text-secondary;
+  }
+
+  .verge-rule {
+    @apply border-t border-purpleRule;
+  }
+
+  .tile-shadow {
+    box-shadow: 0 0 0 2px #2d2d2d inset;
+  }
+}

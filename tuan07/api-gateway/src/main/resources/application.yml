@@ -1,0 +1,78 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          "[/**]":
+            # Allow Vite dev (5173/8085) + LAN deployments. Browser sẽ gửi origin chính xác,
+            # gateway echo lại origin nếu match pattern.
+            allowedOriginPatterns:
+              - "http://localhost:*"
+              - "http://127.0.0.1:*"
+              - "http://192.168.*.*:*"
+              - "http://10.*.*.*:*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+
+      routes:
+        # user-service controller KHÔNG có class-level prefix (@PostMapping("/login"), "/register", "/me")
+        # → strip cả "api" lẫn "users" để khớp với mapping nội bộ.
+        - id: user-service
+          uri: ${USER_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=2
+
+        # movie-service controller có @RequestMapping("/movies") → chỉ strip "api",
+        # giữ lại "/movies/**" khi forward.
+        - id: movie-service
+          uri: ${MOVIE_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/movies/**
+          filters:
+            - StripPrefix=1
+
+        # booking-service controller có @RequestMapping("/bookings") → strip 1.
+        - id: booking-service
+          uri: ${BOOKING_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/bookings/**
+          filters:
+            - StripPrefix=1
+
+        # payment-service controller có @RequestMapping("/payments") → strip 1.
+        - id: payment-service
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/payments/**
+          filters:
+            - StripPrefix=1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    reactor.netty.http.client: WARN

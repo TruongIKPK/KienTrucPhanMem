@@ -1,0 +1,29 @@
+# Override stack: dùng kèm với docker-compose.yml để swap frontend sang Vite dev (hot-reload).
+#
+# Run:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#
+# Khác với prod:
+#   - frontend build từ Dockerfile.dev (Vite dev server `npm run dev`)
+#   - mount source code ./frontend vào /app -> sửa file -> reload tự động
+#   - VITE_API_GATEWAY_URL trỏ thẳng tới http://localhost:8080 (api-gateway expose ra host)
+#   - port mapping 8085:8085 (Vite listen 8085 thay vì nginx :80)
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      VITE_API_GATEWAY_URL: "http://localhost:8080"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "8085:8085"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8085/ | grep -q '<div id=\"root\"' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
