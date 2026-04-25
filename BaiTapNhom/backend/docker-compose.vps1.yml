@@ -1,0 +1,64 @@
+services:
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    networks:
+      - food-ordering-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8761/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    environment:
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka
+    expose:
+      - "8080"
+    networks:
+      - food-ordering-network
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  gateway-lb:
+    image: nginx:alpine
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./gateway-lb.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - food-ordering-network
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    networks:
+      - food-ordering-network
+    depends_on:
+      gateway-lb:
+        condition: service_started
+
+networks:
+  food-ordering-network:
+    driver: bridge
+

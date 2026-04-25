@@ -1,0 +1,11 @@
+/node_modules
+/dist
+/build
+/target
+/logs
+/logs/*
+/logs/**/*
+/logs/**/**/*
+/logs/**/**/**/*
+/logs/**/**/**/**/*
+/logs/**/**/**/**/**/*

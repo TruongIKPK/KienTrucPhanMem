@@ -1,0 +1,88 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: user-service-register
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/register
+          filters:
+            - RewritePath=/api/users/register, /register
+        
+        - id: user-service-login
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/login
+          filters:
+            - RewritePath=/api/users/login, /login
+        
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users, /api/users/**
+          filters:
+            - RewritePath=/api/users(?<segment>/?.*), /users${segment}
+        
+        - id: food-service
+          uri: lb://food-service
+          predicates:
+            - Path=/api/foods, /api/foods/**
+          filters:
+            - RewritePath=/api/foods(?<segment>/?.*), /foods${segment}
+        
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/orders, /api/orders/**
+          filters:
+            - RewritePath=/api/orders(?<segment>/?.*), /orders${segment}
+        
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/payments, /api/payments/**
+          filters:
+            - RewritePath=/api/payments(?<segment>/?.*), /payments${segment}
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns:
+              - "http://localhost:*"
+              - "http://127.0.0.1:*"
+              - "http://*.local:*"
+              - "http://192.168.*.*:*"
+              - "http://10.*.*.*:*"
+              - "http://172.16.*.*:*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            exposedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.nhom03: DEBUG
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+  instance:
+    preferIpAddress: true
+    instanceId: ${spring.application.name}:${HOSTNAME:${random.value}}

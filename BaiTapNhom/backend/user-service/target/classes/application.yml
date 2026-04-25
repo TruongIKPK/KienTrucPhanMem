@@ -27,3 +27,11 @@ spring:
 logging:
   level:
     com.nhom03: DEBUG
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+  instance:
+    preferIpAddress: true
+    instanceId: ${spring.application.name}:${HOSTNAME:${random.value}}

@@ -1,0 +1,37 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: food-service
+  
+  datasource:
+    url: jdbc:h2:mem:fooddb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    com.nhom03: DEBUG
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
+  instance:
+    preferIpAddress: true
+    instanceId: ${spring.application.name}:${HOSTNAME:${random.value}}

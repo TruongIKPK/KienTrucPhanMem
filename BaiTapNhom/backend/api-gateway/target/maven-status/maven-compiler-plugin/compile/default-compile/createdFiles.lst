@@ -1,0 +1,3 @@
+com\nhom03\apigateway\controller\HealthController.class
+com\nhom03\apigateway\ApiGatewayApplication.class
+com\nhom03\apigateway\config\LoggingFilter.class

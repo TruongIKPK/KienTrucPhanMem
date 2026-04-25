@@ -2,13 +2,13 @@ com\nhom03\userservice\dto\UserResponse.class
 com\nhom03\userservice\dto\LoginRequest$LoginRequestBuilder.class
 com\nhom03\userservice\exception\ResourceNotFoundException.class
 com\nhom03\userservice\repository\UserRepository.class
-com\nhom03\userservice\config\CorsConfig.class
+com\nhom03\userservice\config\DataSeeder.class
 com\nhom03\userservice\model\Role.class
 com\nhom03\userservice\dto\RegisterRequest.class
 com\nhom03\userservice\controller\UserController.class
 com\nhom03\userservice\dto\UserResponse$UserResponseBuilder.class
 com\nhom03\userservice\dto\LoginRequest.class
-com\nhom03\userservice\config\CorsConfig$1.class
+com\nhom03\userservice\controller\HealthController.class
 com\nhom03\userservice\exception\GlobalExceptionHandler.class
 com\nhom03\userservice\exception\BadRequestException.class
 com\nhom03\userservice\model\User$UserBuilder.class
