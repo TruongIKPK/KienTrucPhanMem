@@ -1,0 +1,10 @@
+$env:USER_SERVICE_URL = "http://localhost:8081"
+$env:TOUR_SERVICE_URL = "http://localhost:8082"
+$env:BOOKING_SERVICE_URL = "http://localhost:8083"
+$env:PAYMENT_SERVICE_URL = "http://localhost:8084"
+
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PSScriptRoot'; node services/user-service/index.js"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PSScriptRoot'; node services/tour-service/index.js"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PSScriptRoot'; node services/booking-service/index.js"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PSScriptRoot'; node services/payment-service/index.js"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PSScriptRoot'; `$env:USER_SERVICE_URL='http://localhost:8081'; `$env:TOUR_SERVICE_URL='http://localhost:8082'; `$env:BOOKING_SERVICE_URL='http://localhost:8083'; `$env:PAYMENT_SERVICE_URL='http://localhost:8084'; node services/orchestrator-service/index.js"

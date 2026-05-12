@@ -1,0 +1,17 @@
+{
+  "name": "travel-booking-soa-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LAN-only Orchestration-Driven SOA backend for a travel booking system.",
+  "type": "module",
+  "scripts": {
+    "start:orchestrator": "node services/orchestrator-service/index.js",
+    "start:user": "node services/user-service/index.js",
+    "start:tour": "node services/tour-service/index.js",
+    "start:booking": "node services/booking-service/index.js",
+    "start:payment": "node services/payment-service/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
